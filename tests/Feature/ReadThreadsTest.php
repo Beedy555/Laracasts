@@ -11,25 +11,33 @@ class ExampleTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /** @test */
-    public function a_user_can_view_all_threads()
+    public function setup()
     {
-        $thread = factory('App\Thread')->create();
+        parent::setup();
 
-        $response = $this->get('/threads');
-
-        $response->assertSee($thread->title);
-
+        $this->thread = factory('App\Thread')->create();
     }
 
     /** @test */
-    public function a_user_can_read_a_single_thread()
+    function a_user_can_view_all_threads()
     {
-        $thread = factory('App\Thread')->create();
+        $this->get('/threads')
+            ->assertSee($this->thread->title);
+    }
 
-        $response = $this->get('/threads/' . $thread->id);
+    /** @test */
+    function a_user_can_read_a_single_thread()
+    {
+        $this->get('/threads/' . $this->thread->id)
+            ->assertSee($this->thread->title);
+    }
 
-        $response->assertSee($thread->title);
+    /** @test */
+    function a_user_can_read_replies_that_are_associated_with_a_thread()
+    {
+        $reply = factory('App\Reply')->create(['thread_id' => $this->thread->id]);
 
+        $this->get('/threads/' . $this->thread->id)
+            ->assertSee($reply->body);
     }
 }
